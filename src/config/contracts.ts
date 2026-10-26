@@ -8,6 +8,9 @@ export const CONTRACT_ADDRESSES = {
 
 export const SEPOLIA_CHAIN_ID = 11155111;
 
+/** Bloque (aprox., unos días antes del deploy) desde el que se buscan los eventos del Governor. */
+export const GOVERNOR_DEPLOY_BLOCK = 11_940_000;
+
 export const CREDENTIAL_ABI = [
   'function name() view returns (string)',
   'function symbol() view returns (string)',

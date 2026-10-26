@@ -78,8 +78,9 @@ export function StudentRegistrationView() {
         lastName,
         career,
         photoData: photo || undefined,
+        alreadyIssued: wallet.hasCredentialNft,
       });
-      toast.success('Solicitud enviada');
+      toast.success(wallet.hasCredentialNft ? 'Datos guardados' : 'Solicitud enviada');
       await Promise.all([refreshProfile(), refreshWallet()]);
     } catch (err) {
       setError(getErrorMessage(err, 'Error al enviar la solicitud'));
@@ -91,11 +92,15 @@ export function StudentRegistrationView() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title="Solicitar credencial"
-        description="Completá tus datos. La facultad los verifica con el padrón y emite tu credencial."
+        title={wallet.hasCredentialNft ? 'Mis datos' : 'Solicitar credencial'}
+        description={
+          wallet.hasCredentialNft
+            ? 'Ya tenés tu credencial. Completá tus datos para que se vean en ella; se guardan solo en este navegador.'
+            : 'Completá tus datos. La facultad los verifica con el padrón y emite tu credencial.'
+        }
       />
 
-      {profile && (
+      {profile && !wallet.hasCredentialNft && (
         <div className="mb-4">
           <RequestStatus request={profile} />
         </div>
@@ -141,7 +146,7 @@ export function StudentRegistrationView() {
 
           <div className="flex justify-end">
             <Button type="submit" loading={isSubmitting} disabled={!wallet.isConnected}>
-              {profile ? 'Actualizar solicitud' : 'Enviar solicitud'}
+              {wallet.hasCredentialNft ? 'Guardar datos' : profile ? 'Actualizar solicitud' : 'Enviar solicitud'}
             </Button>
           </div>
         </form>

@@ -1,4 +1,5 @@
 export * from './use-cases/getProposalsMetadata';
+export * from './use-cases/syncProposalsFromChain';
 export * from './use-cases/saveProposalMetadata';
 export * from './use-cases/createGovernorProposal';
 export * from './use-cases/fetchOnChainProposalState';

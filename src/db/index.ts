@@ -1,33 +1,10 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { StudentRecord, ProposalRecord } from './schema';
-import { CONTRACT_ADDRESSES } from '../config/contracts';
-
-export const INITIAL_PROPOSALS: ProposalRecord[] = [
-  {
-    id: 'demo-1',
-    title: 'Ampliación del Horario de Biblioteca y Laboratorios de Informática',
-    description: 'Proponemos extender el horario de la biblioteca central y de los laboratorios de computación hasta las 23:00 hs de lunes a viernes, y abrir los sábados de 9:00 a 18:00 hs para facilitar el estudio y proyectos finales de los alumnos de todas las carreras.',
-    category: 'Académica',
-    targetAddress: '0x0000000000000000000000000000000000000000',
-    ethAmount: '0',
-    proposer: '0xA458D22338fC4Ad907Fb098B51B2FCcE61773392',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'demo-2',
-    title: 'Subsidio del Centro de Estudiantes para Buffet y Viandas Saludables',
-    description: 'Solicitud de 0.05 ETH de los fondos de la Tesorería para subsidiar el menú estudiantil del buffet universitario y proveer opciones sin TACC y vegetarianas a precios accesibles.',
-    category: 'Presupuesto / Tesorería',
-    targetAddress: CONTRACT_ADDRESSES.TREASURY,
-    ethAmount: '0.05',
-    proposer: '0xA458D22338fC4Ad907Fb098B51B2FCcE61773392',
-    createdAt: new Date().toISOString(),
-  },
-];
+import { StudentRecord, ProposalRecord, VoteRecord } from './schema';
 
 export class CampusDatabase extends Dexie {
   students!: EntityTable<StudentRecord, 'id'>;
   proposals!: EntityTable<ProposalRecord, 'id'>;
+  votes!: EntityTable<VoteRecord, 'id'>;
 
   constructor() {
     super('unq_campus_dao_db');
@@ -36,18 +13,21 @@ export class CampusDatabase extends Dexie {
       proposals: 'id, category, proposer, createdAt',
     });
 
+    // v2: elimina las propuestas de demostración que sembraba la versión anterior.
+    this.version(2)
+      .stores({})
+      .upgrade((tx) => tx.table('proposals').where('id').startsWith('demo-').delete());
+
+    this.version(3).stores({ votes: 'id, voter' });
+
     this.on('populate', () => {
       try {
         const legacyProposals = localStorage.getItem('unq_dao_proposals_v1');
         if (legacyProposals) {
           const parsed = JSON.parse(legacyProposals);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            this.proposals.bulkAdd(parsed);
-          } else {
-            this.proposals.bulkAdd(INITIAL_PROPOSALS);
+            this.proposals.bulkAdd(parsed.filter((p: { id?: string }) => !p.id?.startsWith('demo-')));
           }
-        } else {
-          this.proposals.bulkAdd(INITIAL_PROPOSALS);
         }
 
         const legacyStudents = localStorage.getItem('unq_dao_students_v1');
@@ -59,7 +39,6 @@ export class CampusDatabase extends Dexie {
         }
       } catch (e) {
         console.warn('Error during Dexie initial populate:', e);
-        this.proposals.bulkAdd(INITIAL_PROPOSALS);
       }
     });
   }

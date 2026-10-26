@@ -1,6 +1,6 @@
 export const CONTRACT_ADDRESSES = {
   // Sepolia Addresses
-  GOVERNOR: '0x94a6A38E968110b7aE9477413d89baa540834A65',
+  GOVERNOR: '0x7Cc01Fd04C973Dc98975985cCBF12Dbc7B88be14',
   CREDENTIAL: '0x7141982F41b288bBF3fA7927360f9b4FB2FC18eE',
   TIMELOCK: '0x577C93ee3dEd72AA281A827Eea9cF145b1BB8003',
   TREASURY: '0xA458D22338fC4Ad907Fb098B51B2FCcE61773392',
@@ -15,6 +15,7 @@ export const CREDENTIAL_ABI = [
   'function ownerOf(uint256 tokenId) view returns (address)',
   'function tokenIdOf(address holder) pure returns (uint256)',
   'function getVotes(address account) view returns (uint256)',
+  'function getPastVotes(address account, uint256 timepoint) view returns (uint256)',
   'function mint(address to) external',
   'function revoke(address holder) external',
   'function ISSUER_ROLE() view returns (bytes32)',
@@ -37,6 +38,9 @@ export const GOVERNOR_ABI = [
   'function proposalEta(uint256 proposalId) view returns (uint256)',
   'function hasVoted(uint256 proposalId, address account) view returns (bool)',
   'function propose(address[] targets, uint256[] values, bytes[] calldatas, string description) returns (uint256)',
+  'function proposeWithDuration(address[] targets, uint256[] values, bytes[] calldatas, string description, uint32 duration) returns (uint256)',
+  'function minVotingPeriod() view returns (uint32)',
+  'function maxVotingPeriod() view returns (uint32)',
   'function castVote(uint256 proposalId, uint8 support) returns (uint256)',
   'function castVoteWithReason(uint256 proposalId, uint8 support, string reason) returns (uint256)',
   'function queue(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) returns (uint256)',

@@ -1,34 +1,16 @@
-import { db, INITIAL_PROPOSALS } from '../../../db';
+import { db } from '../../../db';
+import type { ProposalRecord } from '../../../db/schema';
 
-export async function getProposalsMetadata(): Promise<any[]> {
-  try {
-    let list = await db.proposals.toArray();
-    if (list.length === 0) {
-      await db.proposals.bulkPut(INITIAL_PROPOSALS);
-      list = await db.proposals.toArray();
-    }
-    return list.map((p) => ({
-      proposalId: p.id,
-      title: p.title,
-      description: p.description,
-      category: p.category,
-      targetAddress: p.targetAddress,
-      ethAmount: p.ethAmount,
-      proposer: p.proposer,
-      createdAt: p.createdAt,
-    }));
-  } catch (e) {
-    console.warn('DB error getProposalsMetadata:', e);
-    return INITIAL_PROPOSALS.map((p) => ({
-      proposalId: p.id,
-      title: p.title,
-      description: p.description,
-      category: p.category,
-      targetAddress: p.targetAddress,
-      ethAmount: p.ethAmount,
-      proposer: p.proposer,
-      createdAt: p.createdAt,
-    }));
-  }
+export interface ProposalMetadata extends Omit<ProposalRecord, 'id'> {
+  proposalId: string;
 }
 
+export async function getProposalsMetadata(): Promise<ProposalMetadata[]> {
+  try {
+    const list = await db.proposals.toArray();
+    return list.map(({ id, ...rest }) => ({ proposalId: id, ...rest }));
+  } catch (e) {
+    console.warn('DB error getProposalsMetadata:', e);
+    return [];
+  }
+}

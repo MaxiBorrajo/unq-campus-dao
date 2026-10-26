@@ -5,14 +5,18 @@ import {
   TREASURY_ABI,
 } from '../../../config/contracts';
 import { getSigner } from '../../blockchain';
+import { buildProposalDescription } from './proposalActions';
+import type { ProposalCategory } from '../../../types';
 
 export interface CreateGovernorProposalParams {
   title: string;
   description: string;
-  category: string;
+  category: ProposalCategory;
   isTreasury: boolean;
   beneficiaryAddress?: string;
   ethAmount?: string;
+  /** Duración de la votación en segundos. Requiere un Governor con `proposeWithDuration`. */
+  durationSeconds?: number;
 }
 
 export interface CreateGovernorProposalResult {
@@ -34,7 +38,7 @@ export async function createGovernorProposal(
   let values: bigint[] = [];
   let calldatas: string[] = [];
 
-  const fullDescription = `${params.title}\n\n${params.description}\n\n[Categoría: ${params.category}]`;
+  const fullDescription = buildProposalDescription(params);
 
   if (params.isTreasury && params.beneficiaryAddress && params.ethAmount) {
     // Call Treasury.transferETH(beneficiary, amount)
@@ -52,7 +56,9 @@ export async function createGovernorProposal(
     calldatas = ['0x'];
   }
 
-  const tx = await gov.propose(targets, values, calldatas, fullDescription);
+  const tx = params.durationSeconds
+    ? await gov.proposeWithDuration(targets, values, calldatas, fullDescription, params.durationSeconds)
+    : await gov.propose(targets, values, calldatas, fullDescription);
   const receipt = await tx.wait();
 
   // Parse ProposalCreated event
